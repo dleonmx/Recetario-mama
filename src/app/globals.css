@@ -1,26 +1,62 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #1a1035;
+  --foreground: #f4ecff;
+  --retro-panel: #2b1b54;
+  --retro-panel-2: #3a2570;
+  --retro-accent: #ffce54;
+  --retro-accent-2: #ff5d8f;
+  --retro-accent-3: #4ecdc4;
+  --retro-border: #f4ecff;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-retro-panel: var(--retro-panel);
+  --color-retro-panel-2: var(--retro-panel-2);
+  --color-retro-accent: var(--retro-accent);
+  --color-retro-accent-2: var(--retro-accent-2);
+  --color-retro-accent-3: var(--retro-accent-3);
+  --color-retro-border: var(--retro-border);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --font-pixel: var(--font-press-start);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  image-rendering: pixelated;
+}
+
+.font-pixel {
+  font-family: var(--font-pixel), monospace;
+}
+
+.pixel-border {
+  border: 4px solid var(--retro-border);
+  box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.45);
+}
+
+.pixel-btn {
+  border: 4px solid var(--retro-border);
+  box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.45);
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+}
+
+.pixel-btn:active {
+  transform: translate(4px, 4px);
+  box-shadow: 0 0 0 rgba(0, 0, 0, 0.45);
+}
+
+@keyframes bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+.animate-bob {
+  animation: bob 2.4s ease-in-out infinite;
 }
