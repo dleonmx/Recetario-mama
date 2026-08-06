@@ -45,6 +45,16 @@ create policy "recipes_all" on recipes for all using (true) with check (true);
 create policy "menu_weeks_all" on menu_weeks for all using (true) with check (true);
 create policy "menu_week_items_all" on menu_week_items for all using (true) with check (true);
 
+-- Permisos del bucket de fotos: el bucket "público" solo controla la LECTURA,
+-- Storage tiene su propio RLS para subir/borrar archivos. Sin esto, la app no
+-- puede subir fotos con la clave anónima.
+create policy "recipe_photos_read" on storage.objects
+  for select using (bucket_id = 'recipe-photos');
+create policy "recipe_photos_insert" on storage.objects
+  for insert with check (bucket_id = 'recipe-photos');
+create policy "recipe_photos_delete" on storage.objects
+  for delete using (bucket_id = 'recipe-photos');
+
 -- Después de correr esto:
 -- 1. Ve a Storage > Create a new bucket
 --    - Nombre: recipe-photos

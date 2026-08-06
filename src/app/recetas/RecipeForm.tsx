@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { compressAndUploadPhoto, createRecipe } from "@/lib/recipes";
 import {
   CATEGORIES,
@@ -11,7 +11,7 @@ import {
   type Recipe,
 } from "@/lib/types";
 
-const PROTEINS: Protein[] = ["ninguno", "pollo", "carne", "pescado"];
+const PROTEINS: Protein[] = ["pollo", "carne", "pescado", "ninguno"];
 
 export function RecipeForm({
   onCreated,
@@ -21,7 +21,7 @@ export function RecipeForm({
   onClose: () => void;
 }) {
   const [category, setCategory] = useState<Category>("guisados");
-  const [protein, setProtein] = useState<Protein>("ninguno");
+  const [protein, setProtein] = useState<Protein>("pollo");
   const [name, setName] = useState("");
   const [ingredients, setIngredients] = useState("");
   const [instructions, setInstructions] = useState("");
@@ -29,11 +29,24 @@ export function RecipeForm({
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  function handleCategoryChange(next: Category) {
+    setCategory(next);
+    if (next !== "guisados") setProtein("ninguno");
+    else if (protein === "ninguno") setProtein("pollo");
+  }
 
   function handlePhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0] ?? null;
     setPhotoFile(file);
     setPhotoPreview(file ? URL.createObjectURL(file) : null);
+  }
+
+  function handleRemovePhoto() {
+    setPhotoFile(null);
+    setPhotoPreview(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -84,7 +97,7 @@ export function RecipeForm({
           <span className="mb-1 block text-retro-accent-3">Categoría</span>
           <select
             value={category}
-            onChange={(e) => setCategory(e.target.value as Category)}
+            onChange={(e) => handleCategoryChange(e.target.value as Category)}
             className="w-full rounded border-2 border-retro-border bg-retro-panel-2 p-2"
           >
             {CATEGORIES.map((c) => (
@@ -105,29 +118,77 @@ export function RecipeForm({
           />
         </label>
 
-        <label className="block text-sm">
-          <span className="mb-1 block text-retro-accent-3">Proteína</span>
-          <select
-            value={protein}
-            onChange={(e) => setProtein(e.target.value as Protein)}
-            className="w-full rounded border-2 border-retro-border bg-retro-panel-2 p-2"
-          >
-            {PROTEINS.map((p) => (
-              <option key={p} value={p}>
-                {PROTEIN_LABELS[p]}
-              </option>
-            ))}
-          </select>
-        </label>
+        {category === "guisados" && (
+          <label className="block text-sm">
+            <span className="mb-1 block text-retro-accent-3">
+              Proteína (solo aplica aquí, en Guisados)
+            </span>
+            <select
+              value={protein}
+              onChange={(e) => setProtein(e.target.value as Protein)}
+              className="w-full rounded border-2 border-retro-border bg-retro-panel-2 p-2"
+            >
+              {PROTEINS.map((p) => (
+                <option key={p} value={p}>
+                  {PROTEIN_LABELS[p]}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
 
-        <label className="block text-sm">
+        <div className="block text-sm">
           <span className="mb-1 block text-retro-accent-3">Foto</span>
-          <input type="file" accept="image/*" onChange={handlePhotoChange} className="w-full text-sm" />
-          {photoPreview && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={photoPreview} alt="Vista previa" className="mt-2 h-32 w-32 rounded object-cover" />
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handlePhotoChange}
+            className="hidden"
+          />
+
+          {!photoPreview ? (
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="flex w-full flex-col items-center gap-1 rounded border-4 border-dashed border-retro-border bg-retro-panel-2 py-6 text-center hover:border-retro-accent"
+            >
+              <span className="text-3xl">📷</span>
+              <span className="font-pixel text-[10px] text-retro-accent">
+                Toca para subir una foto
+              </span>
+              <span className="text-xs text-retro-accent-3">(opcional)</span>
+            </button>
+          ) : (
+            <div className="flex items-center gap-3">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={photoPreview}
+                alt="Vista previa"
+                className="h-28 w-28 rounded border-2 border-retro-border object-cover"
+              />
+              <div className="flex flex-col gap-2">
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="pixel-btn font-pixel bg-retro-panel-2 px-2 py-1 text-[10px]"
+                >
+                  Cambiar foto
+                </button>
+                <button
+                  type="button"
+                  onClick={handleRemovePhoto}
+                  className="pixel-btn font-pixel bg-retro-panel-2 px-2 py-1 text-[10px] text-retro-accent-2"
+                >
+                  Quitar foto
+                </button>
+              </div>
+            </div>
           )}
-        </label>
+          <p className="mt-1 text-xs text-retro-accent-3">
+            Se comprime sola al guardar, sube cualquier tamaño sin preocuparte.
+          </p>
+        </div>
 
         <label className="block text-sm">
           <span className="mb-1 block text-retro-accent-3">

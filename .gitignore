@@ -35,6 +35,8 @@ yarn-error.log*
 
 # claves y notas privadas (NUNCA subir)
 NOTAS-CLAVES.md
+claves supabase.txt
+*.txt
 
 # vercel
 .vercel
