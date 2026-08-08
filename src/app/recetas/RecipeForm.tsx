@@ -7,7 +7,6 @@ import {
   deletePhotoFile,
   updateRecipe,
 } from "@/lib/recipes";
-import { pixelateImage } from "@/lib/pixelate";
 import {
   CATEGORIES,
   CATEGORY_LABELS,
@@ -39,7 +38,6 @@ export function RecipeForm({
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(recipe?.photo_url ?? null);
   const [photoRemoved, setPhotoRemoved] = useState(false);
-  const [pixelating, setPixelating] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -50,24 +48,11 @@ export function RecipeForm({
     else if (protein === "ninguno") setProtein("pollo");
   }
 
-  async function handlePhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
+  function handlePhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0] ?? null;
     setPhotoFile(file);
+    setPhotoPreview(file ? URL.createObjectURL(file) : null);
     setPhotoRemoved(false);
-    if (!file) {
-      setPhotoPreview(null);
-      return;
-    }
-    setPixelating(true);
-    try {
-      const pixelated = await pixelateImage(file);
-      setPhotoPreview(URL.createObjectURL(pixelated));
-    } catch {
-      // Si algo falla al pixelar, al menos mostramos la foto tal cual.
-      setPhotoPreview(URL.createObjectURL(file));
-    } finally {
-      setPixelating(false);
-    }
   }
 
   function handleRemovePhoto() {
@@ -198,14 +183,7 @@ export function RecipeForm({
             className="hidden"
           />
 
-          {pixelating ? (
-            <div className="flex w-full flex-col items-center gap-1 rounded border-4 border-dashed border-retro-border bg-retro-panel-2 py-6 text-center">
-              <span className="text-3xl">🕹️</span>
-              <span className="font-pixel text-[10px] text-retro-accent">
-                Pixelando la foto...
-              </span>
-            </div>
-          ) : !photoPreview ? (
+          {!photoPreview ? (
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
@@ -223,7 +201,6 @@ export function RecipeForm({
               <img
                 src={photoPreview}
                 alt="Vista previa"
-                style={{ imageRendering: "pixelated" }}
                 className="h-28 w-28 rounded border-2 border-retro-border object-cover"
               />
               <div className="flex flex-col gap-2">
@@ -245,7 +222,7 @@ export function RecipeForm({
             </div>
           )}
           <p className="mt-1 text-xs text-retro-accent-3">
-            Se convierte a pixel-art sola, sube cualquier tamaño sin preocuparte.
+            Se comprime sola al guardar, sube cualquier tamaño sin preocuparte.
           </p>
         </div>
 

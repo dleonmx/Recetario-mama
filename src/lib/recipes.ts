@@ -1,4 +1,4 @@
-import { pixelateImage } from "./pixelate";
+import imageCompression from "browser-image-compression";
 import { RECIPE_PHOTOS_BUCKET, supabase } from "./supabase";
 import type { Category, NewRecipe, Recipe } from "./types";
 
@@ -25,15 +25,20 @@ export async function listRecipesByCategory(
   return data as Recipe[];
 }
 
-// Convierte la foto a pixel-art en el navegador antes de subirla: combina con
-// el resto de la interfaz retro y de paso el archivo queda chiquito.
+// Comprime la foto en el navegador antes de subirla, para no explotar el
+// almacenamiento ni el ancho de banda del servidor.
 export async function compressAndUploadPhoto(file: File): Promise<string> {
-  const pixelated = await pixelateImage(file);
+  const compressed = await imageCompression(file, {
+    maxSizeMB: 0.5,
+    maxWidthOrHeight: 1280,
+    useWebWorker: true,
+    fileType: "image/webp",
+  });
 
   const fileName = `${crypto.randomUUID()}.webp`;
   const { error } = await supabase.storage
     .from(RECIPE_PHOTOS_BUCKET)
-    .upload(fileName, pixelated, {
+    .upload(fileName, compressed, {
       contentType: "image/webp",
       cacheControl: "31536000",
     });
