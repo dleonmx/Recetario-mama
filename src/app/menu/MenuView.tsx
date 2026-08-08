@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { MandalaSpinner } from "@/components/MandalaSpinner";
 import {
   buildOrganizedShoppingListText,
   buildShoppingListText,
@@ -126,12 +125,7 @@ export function MenuView() {
   }
 
   if (loadingInitial) {
-    return (
-      <div className="flex items-center gap-3">
-        <MandalaSpinner size={36} />
-        <p className="text-sm text-retro-accent-3">Cargando...</p>
-      </div>
-    );
+    return <p className="text-sm text-retro-accent-3">Cargando...</p>;
   }
 
   return (
