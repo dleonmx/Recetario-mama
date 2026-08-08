@@ -22,8 +22,24 @@ Notas de dónde se quedó el trabajo, para retomarlo sin perder contexto.
 - **Desplegado en Vercel:** proyecto `recetario-gaby`, conectado al repo de
   GitHub (auto-deploy en cada push a `main`). URL de producción:
   `https://recetario-gaby.vercel.app`. Env vars (`NEXT_PUBLIC_SUPABASE_URL`,
-  `NEXT_PUBLIC_SUPABASE_ANON_KEY`) agregadas en Production/Preview/
-  Development vía `vercel env add`.
+  `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `GEMINI_API_KEY`) agregadas en Production/
+  Preview/Development vía `vercel env add`.
+- **Editar recetas:** en `/recetas`, tocar una receta abre el mismo
+  formulario (ahora en modo edición) con todo precargado — nombre,
+  categoría, proteína, foto, ingredientes, preparación. `RecipeForm.tsx`
+  soporta ambos modos (`recipe?` prop); `lib/recipes.ts` tiene
+  `updateRecipe` y `deletePhotoFile` (borra la foto vieja si se
+  reemplaza/quita). El ícono de basura en la tarjeta sigue borrando
+  directo sin abrir el formulario.
+- **Lista de compras organizada con Gemini:** en `/menu`, el botón "Ver
+  lista de compras" llama a `POST /api/shopping-list`
+  (`src/app/api/shopping-list/route.ts`), que usa el AI SDK
+  (`generateText` + `Output.object` con Zod, provider `@ai-sdk/google`,
+  modelo `gemini-2.5-flash`) para agrupar y consolidar los ingredientes de
+  la semana por sección de mercado (verduras, carnes, abarrotes, etc.) en
+  vez de por receta. `GEMINI_API_KEY` vive solo server-side (sin prefijo
+  `NEXT_PUBLIC_`). Si la llamada falla, cae de vuelta a la lista cruda
+  agrupada por receta (`buildShoppingListText`) con un aviso visible.
 
 ## Bloqueo resuelto (para referencia futura)
 
@@ -38,9 +54,13 @@ a la UI en vez de SQL genérico.
 
 ## Próximos pasos posibles
 
-- Probar `/recetas` y `/menu` en producción con Gaby (usuaria final).
+- Probar `/recetas` y `/menu` en producción con Gaby (usuaria final),
+  incluyendo editar una receta y pedir la lista de compras organizada.
 - Si se agregan más recetas o se ajusta el algoritmo de menú, solo hace
-  falta `git push` a `main` — Vercel despliega solo.
+  falta `git push` a `main` — Vercel despliega solo (pero si se agrega una
+  env var nueva, hay que correr `vercel --prod` una vez a mano después de
+  agregarla, porque el auto-deploy de git no espera a que termines de
+  configurar variables).
 - Revisar si se quiere dominio propio en vez de `.vercel.app`.
 
 ## Otras notas de sesiones pasadas
