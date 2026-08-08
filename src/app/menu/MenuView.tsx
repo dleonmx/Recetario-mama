@@ -176,6 +176,7 @@ export function MenuView() {
                             <img
                               src={item.recipe.photo_url}
                               alt={item.recipe.name}
+                              style={{ imageRendering: "pixelated" }}
                               className="h-16 w-16 rounded object-cover"
                             />
                           ) : (

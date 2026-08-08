@@ -66,6 +66,7 @@ export function RecipeGrid({
                       <img
                         src={recipe.photo_url}
                         alt={recipe.name}
+                        style={{ imageRendering: "pixelated" }}
                         className="h-20 w-20 rounded object-cover"
                       />
                     ) : (
