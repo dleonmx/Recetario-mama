@@ -1,14 +1,14 @@
 @import "tailwindcss";
 
 :root {
-  --background: #1a1035;
-  --foreground: #f4ecff;
-  --retro-panel: #2b1b54;
-  --retro-panel-2: #3a2570;
-  --retro-accent: #ffce54;
-  --retro-accent-2: #ff5d8f;
-  --retro-accent-3: #4ecdc4;
-  --retro-border: #f4ecff;
+  --background: #0d3b3e;
+  --foreground: #f2fefb;
+  --retro-panel: #124f52;
+  --retro-panel-2: #19686c;
+  --retro-accent: #ff8552;
+  --retro-accent-2: #ffd23f;
+  --retro-accent-3: #7fe0c8;
+  --retro-border: #f6fff8;
 }
 
 @theme inline {

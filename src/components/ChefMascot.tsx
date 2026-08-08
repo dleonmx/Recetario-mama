@@ -19,14 +19,14 @@ const CHEF_ROWS = [
 
 const CHEF_PALETTE: Record<string, string> = {
   H: "#ffffff",
-  h: "#d8d3e0",
+  h: "#d7ece7",
   S: "#f2b380",
   s: "#d99a66",
-  E: "#2b1b54",
+  E: "#0d3b3e",
   m: "#a5502e",
   C: "#ffffff",
-  c: "#d8d3e0",
-  B: "#ffce54",
+  c: "#d7ece7",
+  B: "#ffd23f",
 };
 
 export function ChefMascot({ className }: { className?: string }) {

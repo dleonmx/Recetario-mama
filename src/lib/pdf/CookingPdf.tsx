@@ -3,13 +3,13 @@ import { CATEGORY_LABELS, MENU_CATEGORIES, type MenuWeekItemWithRecipe } from "@
 
 const styles = StyleSheet.create({
   page: { padding: 32, fontSize: 11, fontFamily: "Helvetica" },
-  title: { fontSize: 20, marginBottom: 4, color: "#2b1b54" },
+  title: { fontSize: 20, marginBottom: 4, color: "#0d3b3e" },
   subtitle: { fontSize: 11, marginBottom: 20, color: "#666" },
   categoryTitle: {
     fontSize: 14,
     marginTop: 16,
     marginBottom: 8,
-    color: "#ff5d8f",
+    color: "#ff8552",
     textTransform: "uppercase",
   },
   card: {
@@ -23,11 +23,11 @@ const styles = StyleSheet.create({
     width: 90,
     height: 90,
     marginRight: 14,
-    backgroundColor: "#f0e9ff",
+    backgroundColor: "#eaf7f4",
   },
   cardBody: { flex: 1 },
-  recipeName: { fontSize: 13, marginBottom: 4, color: "#2b1b54" },
-  label: { fontSize: 9, color: "#ff5d8f", marginTop: 4 },
+  recipeName: { fontSize: 13, marginBottom: 4, color: "#0d3b3e" },
+  label: { fontSize: 9, color: "#19686c", marginTop: 4 },
   text: { fontSize: 10, lineHeight: 1.4 },
 });
 
