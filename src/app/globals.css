@@ -60,3 +60,19 @@ body {
 .animate-bob {
   animation: bob 2.4s ease-in-out infinite;
 }
+
+@keyframes spin-pixel {
+  to { transform: rotate(360deg); }
+}
+
+.animate-spin-pixel {
+  animation: spin-pixel 1.6s steps(8) infinite;
+  transform-origin: 50% 50%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-bob,
+  .animate-spin-pixel {
+    animation: none;
+  }
+}

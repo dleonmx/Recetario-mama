@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { MandalaSpinner } from "@/components/MandalaSpinner";
 import { RetroNav } from "@/components/RetroNav";
 import { listRecipes } from "@/lib/recipes";
 import type { Recipe } from "@/lib/types";
@@ -33,7 +34,12 @@ export default function RecetasPage() {
         </div>
 
         {error && <p className="text-retro-accent-2">{error}</p>}
-        {!recipes && !error && <p className="text-sm text-retro-accent-3">Cargando recetas...</p>}
+        {!recipes && !error && (
+          <div className="flex items-center gap-3">
+            <MandalaSpinner size={36} />
+            <p className="text-sm text-retro-accent-3">Cargando recetas...</p>
+          </div>
+        )}
         {recipes && (
           <RecipeGrid
             recipes={recipes}
