@@ -8,15 +8,18 @@ import {
   PROTEIN_LABELS,
   type Recipe,
 } from "@/lib/types";
+import { RecipeForm } from "./RecipeForm";
 
 export function RecipeGrid({
   recipes,
   onDeleted,
+  onUpdated,
 }: {
   recipes: Recipe[];
   onDeleted: (id: string) => void;
+  onUpdated: (recipe: Recipe) => void;
 }) {
-  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [editingRecipe, setEditingRecipe] = useState<Recipe | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   async function handleDelete(recipe: Recipe) {
@@ -51,77 +54,60 @@ export function RecipeGrid({
               {CATEGORY_LABELS[category]}
             </h2>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
-              {items.map((recipe) => {
-                const expanded = expandedId === recipe.id;
-                return (
-                  <div
-                    key={recipe.id}
-                    className={`pixel-border bg-retro-panel cursor-pointer p-2 transition-all ${
-                      expanded ? "col-span-2 row-span-2 sm:col-span-3 md:col-span-4" : ""
-                    }`}
-                    onClick={() => setExpandedId(expanded ? null : recipe.id)}
-                  >
-                    <div className="flex items-start justify-between gap-2">
-                      {recipe.photo_url ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={recipe.photo_url}
-                          alt={recipe.name}
-                          className={`rounded object-cover ${
-                            expanded ? "h-40 w-40" : "h-20 w-20"
-                          }`}
-                        />
-                      ) : (
-                        <div
-                          className={`flex items-center justify-center rounded bg-retro-panel-2 text-2xl ${
-                            expanded ? "h-40 w-40" : "h-20 w-20"
-                          }`}
-                        >
-                          🍽️
-                        </div>
-                      )}
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDelete(recipe);
-                        }}
-                        disabled={deletingId === recipe.id}
-                        className="text-lg leading-none hover:scale-110"
-                        title="Borrar receta"
-                      >
-                        🗑️
-                      </button>
-                    </div>
-                    <p className="mt-2 text-sm font-semibold">{recipe.name}</p>
-                    {recipe.protein !== "ninguno" && (
-                      <p className="text-xs text-retro-accent-3">
-                        {PROTEIN_LABELS[recipe.protein]}
-                      </p>
-                    )}
-
-                    {expanded && (
-                      <div className="mt-3 space-y-3 text-sm" onClick={(e) => e.stopPropagation()}>
-                        {recipe.ingredients && (
-                          <div>
-                            <p className="font-pixel text-retro-accent-2 text-[10px]">Ingredientes</p>
-                            <p className="whitespace-pre-line">{recipe.ingredients}</p>
-                          </div>
-                        )}
-                        {recipe.instructions && (
-                          <div>
-                            <p className="font-pixel text-retro-accent-2 text-[10px]">Preparación</p>
-                            <p className="whitespace-pre-line">{recipe.instructions}</p>
-                          </div>
-                        )}
+              {items.map((recipe) => (
+                <div
+                  key={recipe.id}
+                  className="pixel-border bg-retro-panel cursor-pointer p-2 transition-all hover:brightness-110"
+                  onClick={() => setEditingRecipe(recipe)}
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    {recipe.photo_url ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={recipe.photo_url}
+                        alt={recipe.name}
+                        className="h-20 w-20 rounded object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-20 w-20 items-center justify-center rounded bg-retro-panel-2 text-2xl">
+                        🍽️
                       </div>
                     )}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDelete(recipe);
+                      }}
+                      disabled={deletingId === recipe.id}
+                      className="text-lg leading-none hover:scale-110"
+                      title="Borrar receta"
+                    >
+                      🗑️
+                    </button>
                   </div>
-                );
-              })}
+                  <p className="mt-2 text-sm font-semibold">{recipe.name}</p>
+                  {recipe.protein !== "ninguno" && (
+                    <p className="text-xs text-retro-accent-3">
+                      {PROTEIN_LABELS[recipe.protein]}
+                    </p>
+                  )}
+                </div>
+              ))}
             </div>
           </section>
         );
       })}
+
+      {editingRecipe && (
+        <RecipeForm
+          recipe={editingRecipe}
+          onClose={() => setEditingRecipe(null)}
+          onUpdated={(updated) => {
+            onUpdated(updated);
+            setEditingRecipe(null);
+          }}
+        />
+      )}
     </div>
   );
 }

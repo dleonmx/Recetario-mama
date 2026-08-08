@@ -2,10 +2,13 @@
 
 import { useEffect, useState } from "react";
 import {
+  buildOrganizedShoppingListText,
   buildShoppingListText,
   generateWeeklyMenu,
   getLatestMenu,
+  organizeShoppingList,
   regenerateMenuItem,
+  type ShoppingListGroup,
 } from "@/lib/menu";
 import {
   CATEGORY_LABELS,
@@ -24,6 +27,9 @@ export function MenuView() {
   const [changingId, setChangingId] = useState<string | null>(null);
   const [showShoppingList, setShowShoppingList] = useState(false);
   const [generatingPdf, setGeneratingPdf] = useState(false);
+  const [shoppingGroups, setShoppingGroups] = useState<ShoppingListGroup[] | null>(null);
+  const [organizingList, setOrganizingList] = useState(false);
+  const [organizeError, setOrganizeError] = useState<string | null>(null);
 
   useEffect(() => {
     getLatestMenu()
@@ -39,6 +45,8 @@ export function MenuView() {
       const result = await generateWeeklyMenu();
       setMenu(result);
       setShowShoppingList(false);
+      setShoppingGroups(null);
+      setOrganizeError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : "No se pudo generar el menú.");
     } finally {
@@ -85,9 +93,35 @@ export function MenuView() {
     }
   }
 
+  async function handleToggleShoppingList() {
+    if (showShoppingList) {
+      setShowShoppingList(false);
+      return;
+    }
+    setShowShoppingList(true);
+    if (!menu || shoppingGroups || organizingList) return;
+    setOrganizingList(true);
+    setOrganizeError(null);
+    try {
+      const groups = await organizeShoppingList(menu.items);
+      setShoppingGroups(groups);
+    } catch (err) {
+      setOrganizeError(
+        err instanceof Error ? err.message : "No se pudo organizar la lista con IA."
+      );
+    } finally {
+      setOrganizingList(false);
+    }
+  }
+
+  function shoppingListText(): string {
+    if (!menu) return "";
+    if (shoppingGroups) return buildOrganizedShoppingListText(shoppingGroups);
+    return buildShoppingListText(menu.items);
+  }
+
   function copyShoppingList() {
-    if (!menu) return;
-    navigator.clipboard.writeText(buildShoppingListText(menu.items));
+    navigator.clipboard.writeText(shoppingListText());
   }
 
   if (loadingInitial) {
@@ -196,7 +230,7 @@ export function MenuView() {
 
           <div className="flex flex-wrap gap-3 pt-4">
             <button
-              onClick={() => setShowShoppingList((v) => !v)}
+              onClick={handleToggleShoppingList}
               className="pixel-btn font-pixel bg-retro-panel-2 px-3 py-2 text-[10px] text-foreground sm:text-xs"
             >
               🛒 {showShoppingList ? "Ocultar" : "Ver"} lista de compras
@@ -212,12 +246,25 @@ export function MenuView() {
 
           {showShoppingList && (
             <div className="pixel-border bg-retro-panel-2 space-y-3 p-4">
-              <pre className="whitespace-pre-wrap font-sans text-sm">
-                {buildShoppingListText(menu.items)}
-              </pre>
+              {organizingList && (
+                <p className="text-sm text-retro-accent-3">
+                  🤖 Organizando la lista por tipo de producto...
+                </p>
+              )}
+              {organizeError && (
+                <p className="text-xs text-retro-accent-2">
+                  ⚠️ {organizeError} Se muestra la lista sin organizar.
+                </p>
+              )}
+              {!organizingList && (
+                <pre className="whitespace-pre-wrap font-sans text-sm">
+                  {shoppingListText()}
+                </pre>
+              )}
               <button
                 onClick={copyShoppingList}
-                className="pixel-btn font-pixel bg-retro-accent px-3 py-2 text-[10px] text-retro-panel"
+                disabled={organizingList}
+                className="pixel-btn font-pixel bg-retro-accent px-3 py-2 text-[10px] text-retro-panel disabled:opacity-60"
               >
                 Copiar para WhatsApp
               </button>

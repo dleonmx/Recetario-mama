@@ -63,14 +63,34 @@ export async function createRecipe(recipe: NewRecipe): Promise<Recipe> {
   return data as Recipe;
 }
 
+export async function updateRecipe(
+  id: string,
+  patch: Partial<NewRecipe>
+): Promise<Recipe> {
+  const { data, error } = await supabase
+    .from("recipes")
+    .update(patch)
+    .eq("id", id)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data as Recipe;
+}
+
+// Borra el archivo de una foto vieja del bucket, sin tronar si ya no existe.
+export async function deletePhotoFile(photoUrl: string): Promise<void> {
+  const fileName = photoUrl.split("/").pop();
+  if (fileName) {
+    await supabase.storage.from(RECIPE_PHOTOS_BUCKET).remove([fileName]);
+  }
+}
+
 export async function deleteRecipe(recipe: Recipe): Promise<void> {
   const { error } = await supabase.from("recipes").delete().eq("id", recipe.id);
   if (error) throw error;
 
   if (recipe.photo_url) {
-    const fileName = recipe.photo_url.split("/").pop();
-    if (fileName) {
-      await supabase.storage.from(RECIPE_PHOTOS_BUCKET).remove([fileName]);
-    }
+    await deletePhotoFile(recipe.photo_url);
   }
 }

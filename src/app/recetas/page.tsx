@@ -38,6 +38,9 @@ export default function RecetasPage() {
           <RecipeGrid
             recipes={recipes}
             onDeleted={(id) => setRecipes((prev) => prev?.filter((r) => r.id !== id) ?? prev)}
+            onUpdated={(updated) =>
+              setRecipes((prev) => prev?.map((r) => (r.id === updated.id ? updated : r)) ?? prev)
+            }
           />
         )}
       </main>

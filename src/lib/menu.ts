@@ -389,6 +389,47 @@ export async function getLatestMenu(): Promise<GeneratedMenu | null> {
   };
 }
 
+export interface ShoppingListGroup {
+  section: string;
+  items: string[];
+}
+
+export async function organizeShoppingList(
+  items: MenuWeekItemWithRecipe[]
+): Promise<ShoppingListGroup[]> {
+  const recipes = items.map((item) => ({
+    name: item.recipe.name,
+    ingredients: item.recipe.ingredients ?? "",
+  }));
+
+  const res = await fetch("/api/shopping-list", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ recipes }),
+  });
+
+  if (!res.ok) {
+    const body = await res.json().catch(() => null);
+    throw new Error(body?.error ?? "No se pudo organizar la lista con IA.");
+  }
+
+  const data = await res.json();
+  return data.groups as ShoppingListGroup[];
+}
+
+export function buildOrganizedShoppingListText(groups: ShoppingListGroup[]): string {
+  const lines: string[] = ["🛒 Lista de compras organizada", ""];
+
+  for (const group of groups) {
+    if (group.items.length === 0) continue;
+    lines.push(`*${group.section}*`);
+    for (const item of group.items) lines.push(`- ${item}`);
+    lines.push("");
+  }
+
+  return lines.join("\n").trim();
+}
+
 export function buildShoppingListText(items: MenuWeekItemWithRecipe[]): string {
   const lines: string[] = ["🛒 Lista de compras de la semana", ""];
 

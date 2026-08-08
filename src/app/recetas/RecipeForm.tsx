@@ -1,7 +1,12 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { compressAndUploadPhoto, createRecipe } from "@/lib/recipes";
+import {
+  compressAndUploadPhoto,
+  createRecipe,
+  deletePhotoFile,
+  updateRecipe,
+} from "@/lib/recipes";
 import {
   CATEGORIES,
   CATEGORY_LABELS,
@@ -14,19 +19,25 @@ import {
 const PROTEINS: Protein[] = ["pollo", "carne", "pescado", "ninguno"];
 
 export function RecipeForm({
+  recipe,
   onCreated,
+  onUpdated,
   onClose,
 }: {
-  onCreated: (recipe: Recipe) => void;
+  recipe?: Recipe;
+  onCreated?: (recipe: Recipe) => void;
+  onUpdated?: (recipe: Recipe) => void;
   onClose: () => void;
 }) {
-  const [category, setCategory] = useState<Category>("guisados");
-  const [protein, setProtein] = useState<Protein>("pollo");
-  const [name, setName] = useState("");
-  const [ingredients, setIngredients] = useState("");
-  const [instructions, setInstructions] = useState("");
+  const isEditing = !!recipe;
+  const [category, setCategory] = useState<Category>(recipe?.category ?? "guisados");
+  const [protein, setProtein] = useState<Protein>(recipe?.protein ?? "pollo");
+  const [name, setName] = useState(recipe?.name ?? "");
+  const [ingredients, setIngredients] = useState(recipe?.ingredients ?? "");
+  const [instructions, setInstructions] = useState(recipe?.instructions ?? "");
   const [photoFile, setPhotoFile] = useState<File | null>(null);
-  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(recipe?.photo_url ?? null);
+  const [photoRemoved, setPhotoRemoved] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -41,11 +52,13 @@ export function RecipeForm({
     const file = e.target.files?.[0] ?? null;
     setPhotoFile(file);
     setPhotoPreview(file ? URL.createObjectURL(file) : null);
+    setPhotoRemoved(false);
   }
 
   function handleRemovePhoto() {
     setPhotoFile(null);
     setPhotoPreview(null);
+    setPhotoRemoved(true);
     if (fileInputRef.current) fileInputRef.current.value = "";
   }
 
@@ -58,16 +71,37 @@ export function RecipeForm({
     setSaving(true);
     setError(null);
     try {
-      const photo_url = photoFile ? await compressAndUploadPhoto(photoFile) : null;
-      const recipe = await createRecipe({
+      // Foto: nueva -> sube y borra la vieja; quitada -> null y borra la vieja;
+      // sin tocar -> se conserva la que ya tenía.
+      let photo_url: string | null;
+      if (photoFile) {
+        photo_url = await compressAndUploadPhoto(photoFile);
+      } else if (photoRemoved) {
+        photo_url = null;
+      } else {
+        photo_url = recipe?.photo_url ?? null;
+      }
+      const photoChanged = photo_url !== (recipe?.photo_url ?? null);
+
+      const payload = {
         name: name.trim(),
         category,
         protein,
         photo_url,
         ingredients,
         instructions,
-      });
-      onCreated(recipe);
+      };
+
+      if (isEditing && recipe) {
+        const updated = await updateRecipe(recipe.id, payload);
+        if (photoChanged && recipe.photo_url) {
+          await deletePhotoFile(recipe.photo_url);
+        }
+        onUpdated?.(updated);
+      } else {
+        const created = await createRecipe(payload);
+        onCreated?.(created);
+      }
       onClose();
     } catch (err) {
       setError(err instanceof Error ? err.message : "No se pudo guardar la receta.");
@@ -83,7 +117,9 @@ export function RecipeForm({
         className="pixel-border bg-retro-panel my-8 w-full max-w-lg space-y-4 p-5"
       >
         <div className="flex items-center justify-between">
-          <h2 className="font-pixel text-retro-accent text-sm">Nueva receta</h2>
+          <h2 className="font-pixel text-retro-accent text-sm">
+            {isEditing ? "Editar receta" : "Nueva receta"}
+          </h2>
           <button
             type="button"
             onClick={onClose}
@@ -220,7 +256,7 @@ export function RecipeForm({
           disabled={saving}
           className="pixel-btn font-pixel w-full bg-retro-accent px-4 py-3 text-xs text-retro-panel disabled:opacity-60"
         >
-          {saving ? "Guardando..." : "Guardar receta"}
+          {saving ? "Guardando..." : isEditing ? "Guardar cambios" : "Guardar receta"}
         </button>
       </form>
     </div>
