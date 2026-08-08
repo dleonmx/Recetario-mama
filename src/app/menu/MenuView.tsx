@@ -253,7 +253,8 @@ export function MenuView() {
               )}
               {organizeError && (
                 <p className="text-xs text-retro-accent-2">
-                  ⚠️ {organizeError} Se muestra la lista sin organizar.
+                  🤖 En este momento no se pudo organizar la lista con inteligencia
+                  artificial. Aquí tienes los ingredientes de todas formas:
                 </p>
               )}
               {!organizingList && (
