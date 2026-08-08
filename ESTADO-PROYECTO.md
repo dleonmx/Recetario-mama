@@ -12,55 +12,42 @@ Notas de dónde se quedó el trabajo, para retomarlo sin perder contexto.
   pusheado a `main`.
 - Supabase configurado: proyecto `tstjdedbfpvqmqlnclyh`, tablas `recipes`,
   `menu_weeks`, `menu_week_items` creadas (`supabase/schema.sql`), bucket
-  `recipe-photos` creado como público.
+  `recipe-photos` público **con 4 policies activas** (SELECT/INSERT/UPDATE/
+  DELETE, rol `public`, condición `bucket_id = 'recipe-photos'`) — creadas
+  desde la UI del dashboard (`Storage > Policies`), no por SQL Editor.
 - `.env.local` ya tiene las claves (NEXT_PUBLIC_SUPABASE_URL/ANON_KEY),
   también respaldadas en `NOTAS-CLAVES.md` (ninguno de los dos se sube a git).
-- `scripts/seed.mjs` con las 30 recetas de "txt comida.txt" listas para
-  sembrar (con imágenes placeholder pixel-art generadas en `scripts/png.mjs`
-  y `scripts/icons.mjs`), pero **no se ha corrido con éxito todavía** por el
-  bloqueo de abajo.
+- `scripts/seed.mjs` corrido con éxito: **30 recetas sembradas** con foto
+  cada una en el bucket `recipe-photos` (prefijo `seed/`).
+- **Desplegado en Vercel:** proyecto `recetario-gaby`, conectado al repo de
+  GitHub (auto-deploy en cada push a `main`). URL de producción:
+  `https://recetario-gaby.vercel.app`. Env vars (`NEXT_PUBLIC_SUPABASE_URL`,
+  `NEXT_PUBLIC_SUPABASE_ANON_KEY`) agregadas en Production/Preview/
+  Development vía `vercel env add`.
 
-## Bloqueo pendiente (esto es lo primero que hay que resolver mañana)
+## Bloqueo resuelto (para referencia futura)
 
-Subir fotos al bucket `recipe-photos` falla con:
-`StorageApiError: new row violates row-level security policy (403 AccessDenied)`
+El bloqueo de Storage (`403 AccessDenied` al subir fotos) NO se resolvía
+con policies creadas por SQL Editor sobre `storage.objects` — aunque
+corrían sin error, el dashboard mostraba "No policies created yet" para el
+bucket. La solución fue crear las policies **desde la UI de Storage**
+(`Storage > Policies > recipe-photos > New policy > For full customization`),
+marcando las 4 operaciones y dejando "Target roles" vacío (aplica a
+`public`). Si este problema vuelve a aparecer con otro bucket, ir directo
+a la UI en vez de SQL genérico.
 
-Ya se intentó (y NO funcionó):
-```sql
-create policy "recipe_photos_read" on storage.objects
-  for select using (bucket_id = 'recipe-photos');
-create policy "recipe_photos_insert" on storage.objects
-  for insert with check (bucket_id = 'recipe-photos');
-create policy "recipe_photos_delete" on storage.objects
-  for delete using (bucket_id = 'recipe-photos');
-```
-Esto SÍ corrió sin error en el SQL Editor, pero el upload sigue fallando
-igual. Se confirmó con una prueba directa que:
-- Insertar filas en la tabla `recipes` SÍ funciona (RLS de tablas normales
-  está bien).
-- Solo Storage (`storage.objects`) sigue rechazando el insert.
+## Próximos pasos posibles
 
-**Próximo paso sugerido:** en vez de más SQL a ciegas, revisar directo en
-el dashboard: `Storage > Policies` (`https://supabase.com/dashboard/project/tstjdedbfpvqmqlnclyh/storage/policies`)
-para ver si las 3 políticas realmente aparecen ahí y a qué rol están
-aplicando. Puede que haga falta crearlas desde la UI de Storage (que a
-veces maneja algunos detalles distintos a una policy de SQL genérica), o
-que el bucket necesite otro ajuste de "Public" adicional a las policies.
+- Probar `/recetas` y `/menu` en producción con Gaby (usuaria final).
+- Si se agregan más recetas o se ajusta el algoritmo de menú, solo hace
+  falta `git push` a `main` — Vercel despliega solo.
+- Revisar si se quiere dominio propio en vez de `.vercel.app`.
 
-Una vez resuelto esto:
-1. Correr `node scripts/seed.mjs` desde la raíz del proyecto (con
-   `npm install` ya hecho) para sembrar las 30 recetas.
-2. Probar `/recetas` y `/menu` con datos reales.
-3. Conectar el repo a Vercel (Daniel ya tiene cuenta) y agregar las mismas
-   env vars ahí.
+## Otras notas de sesiones pasadas
 
-## Otras notas de la sesión
-
-- El servidor local se corrió con `npm run dev` (Turbopack, puerto 3000) y
-  respondía bien (HTTP 200 en `/`, `/recetas`, `/menu`) antes de pausar.
-  Si ya no está corriendo, solo hace falta `npm run dev` de nuevo.
+- El servidor local se corre con `npm run dev` (Turbopack, puerto 3000).
 - El formulario de agregar receta ya solo muestra el selector de proteína
   cuando la categoría es "Guisados" (es la única categoría donde el
-  generador de menú la usa) — esto fue un ajuste pedido en la sesión.
+  generador de menú la usa).
 - La zona de subir foto se rediseñó para ser más clara (botón grande,
   vista previa, opción de cambiar/quitar).
